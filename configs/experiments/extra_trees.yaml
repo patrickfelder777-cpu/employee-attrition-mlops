@@ -1,0 +1,32 @@
+project:
+  name: employee-attrition-mlops
+  experiment_name: employee_attrition_experiments
+  random_state: 42
+
+data:
+  raw_path: data/raw/employee_attrition.csv
+  target: Attrition
+  test_size: 0.20
+  missing_value_rate: 0.05
+  data_version: employee_attrition_v1
+
+model:
+  type: extra_trees
+  n_estimators: 300
+  max_depth: 12
+  min_samples_split: 4
+  class_weight: balanced
+
+evaluation:
+  primary_metric: f1
+  minimum_f1: 0.35
+  minimum_accuracy: 0.75
+  minimum_roc_auc: 0.65
+
+artifacts:
+  model_path: models/extra_trees.joblib
+  metrics_path: reports/extra_trees_metrics.json
+
+monitoring:
+  drift_share_threshold: 0.10
+  report_path: reports/data_drift_report.html

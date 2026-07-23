@@ -11,7 +11,12 @@ import mlflow.sklearn
 import pandas as pd
 import yaml
 from mlflow.models import infer_signature
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import (
+    ExtraTreesClassifier,
+    GradientBoostingClassifier,
+    RandomForestClassifier,
+)
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
@@ -60,24 +65,61 @@ def load_dataset(data_path: str) -> pd.DataFrame:
     return dataframe
 
 
-def build_model(config: dict[str, Any]) -> RandomForestClassifier:
-    """Create a Random Forest classifier from configuration values."""
+def build_model(config: dict[str, Any]) -> Any:
+    """Create a classification model from configuration values."""
     model_config = config["model"]
+    model_type = model_config["type"]
     random_state = config["project"]["random_state"]
 
-    if model_config["type"] != "random_forest":
-        raise ValueError(
-            f"Unsupported model type: {model_config['type']}"
+    if model_type == "logistic_regression":
+        return LogisticRegression(
+            C=model_config.get("C", 1.0),
+            max_iter=model_config.get("max_iter", 1000),
+            class_weight=model_config.get("class_weight", "balanced"),
+            random_state=random_state,
         )
 
-    return RandomForestClassifier(
-        n_estimators=model_config["n_estimators"],
-        max_depth=model_config["max_depth"],
-        min_samples_split=model_config["min_samples_split"],
-        class_weight=model_config["class_weight"],
-        random_state=random_state,
-        n_jobs=-1,
-    )
+    if model_type == "random_forest":
+        return RandomForestClassifier(
+            n_estimators=model_config.get("n_estimators", 200),
+            max_depth=model_config.get("max_depth"),
+            min_samples_split=model_config.get(
+                "min_samples_split",
+                2,
+            ),
+            class_weight=model_config.get(
+                "class_weight",
+                "balanced",
+            ),
+            random_state=random_state,
+            n_jobs=-1,
+        )
+
+    if model_type == "gradient_boosting":
+        return GradientBoostingClassifier(
+            n_estimators=model_config.get("n_estimators", 100),
+            learning_rate=model_config.get("learning_rate", 0.1),
+            max_depth=model_config.get("max_depth", 3),
+            random_state=random_state,
+        )
+
+    if model_type == "extra_trees":
+        return ExtraTreesClassifier(
+            n_estimators=model_config.get("n_estimators", 200),
+            max_depth=model_config.get("max_depth"),
+            min_samples_split=model_config.get(
+                "min_samples_split",
+                2,
+            ),
+            class_weight=model_config.get(
+                "class_weight",
+                "balanced",
+            ),
+            random_state=random_state,
+            n_jobs=-1,
+        )
+
+    raise ValueError(f"Unsupported model type: {model_type}")
 
 
 def prepare_data(
