@@ -1,0 +1,30 @@
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Data files
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Models and generated reports
+models/*
+reports/*.html
+reports/*.json
+
+# MLflow artifacts
+mlruns/
+mlartifacts/
+
+# DVC cache
+.dvc/cache/
+
+# IDE and operating-system files
+.vscode/
+.DS_Store
+Thumbs.db
