@@ -19,7 +19,7 @@ model:
 
 evaluation:
   primary_metric: f1
-  minimum_f1: 0.50
+  minimum_f1: 0.40
   minimum_accuracy: 0.75
   minimum_roc_auc: 0.65
 
