@@ -49,5 +49,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run model training
+        env:
+          MLFLOW_TRACKING_URI: sqlite:///mlflow-ci.db
         run: |
           python -m src.train --config configs/config.yaml
