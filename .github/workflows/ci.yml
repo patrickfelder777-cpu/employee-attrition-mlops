@@ -1,4 +1,3 @@
-@'
 name: CI Pipeline
 
 on:
@@ -52,4 +51,3 @@ jobs:
       - name: Run model training
         run: |
           python -m src.train --config configs/config.yaml
-'@ | Set-Content .github\workflows\ci.yml
