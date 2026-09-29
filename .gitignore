@@ -26,4 +26,5 @@ mlartifacts/
 # IDE and operating-system files
 .vscode/
 .DS_Store
-Thumbs.db
+Thumbs.db.venv311-backup/
+mlflow.db
