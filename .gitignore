@@ -34,3 +34,6 @@ mlflow.db
 
 # Local Python environment backup
 .venv311-backup/
+
+# Temporary dataset verification files
+/data/verification/
