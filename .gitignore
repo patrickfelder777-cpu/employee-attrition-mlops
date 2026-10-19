@@ -28,3 +28,9 @@ mlartifacts/
 .DS_Store
 Thumbs.db.venv311-backup/
 mlflow.db
+
+# DVC-managed dataset
+/data/raw/employee_attrition.csv
+
+# Local Python environment backup
+.venv311-backup/
