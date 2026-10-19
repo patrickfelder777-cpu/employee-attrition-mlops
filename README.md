@@ -1,34 +1,60 @@
+
 # Employee Attrition MLOps
 
-An educational machine learning project that predicts employee attrition and explores practices for tracking, testing, and monitoring a model.
+[![CI Pipeline](https://github.com/patrickfelder777-cpu/employee-attrition-mlops/actions/workflows/ci.yml/badge.svg)](https://github.com/patrickfelder777-cpu/employee-attrition-mlops/actions/workflows/ci.yml)
 
-## What the project does
+An educational, end-to-end machine learning project that predicts employee attrition and demonstrates model training, experiment tracking, automated testing, API development, and continuous integration.
 
-- Loads the included employee attrition dataset and splits it into training and test sets.
-- Introduces a small amount of simulated missing data to test preprocessing.
-- Imputes missing values, scales numerical features, and encodes categorical features.
-- Trains a classification model and reports accuracy, precision, recall, F1, and ROC-AUC.
-- Tracks experiments with MLflow and saves the trained pipeline and metrics.
-- Uses Evidently to compare reference data with simulated production data for drift.
-- Includes automated tests and a GitHub Actions workflow.
+**Project status:** GitHub Actions CI passed with 28 automated tests.
 
-## Dataset and scope
+> This project is for educational and portfolio purposes only. Its predictions should not be used to make employment decisions about real people.
 
-The included CSV has 1,470 rows. The target is `Attrition` (`Yes` or `No`). This is a portfolio project; its predictions are not intended for employment decisions about real people.
+## Project Overview
 
-## Key files
+The project uses an IBM HR Analytics employee attrition dataset to train a Random Forest classification model.
 
-- `src/train.py` — training, evaluation, MLflow tracking, and saved outputs
-- `src/preprocessing.py` — data validation and preprocessing
-- `src/monitor_drift.py` — simulated drift analysis
-- `configs/` — model and experiment settings
-- `tests/` — automated checks
-- `MONITORING.md` — monitoring approach and recorded results
+The workflow includes:
 
+- Data validation and preprocessing with scikit-learn
+- Numerical imputation, scaling, and categorical encoding
+- Random Forest model training and evaluation
+- Experiment tracking with MLflow
+- Dataset version tracking with DVC
+- Model serving through a Flask REST API
+- Data drift analysis using Evidently
+- Automated testing with pytest
+- Continuous integration using GitHub Actions
 
-## Results
+## Technology Stack
 
-The configured Random Forest achieved these results on the stratified 20% test split:
+| Category | Technologies |
+|---|---|
+| Programming | Python |
+| Machine Learning | scikit-learn, pandas, NumPy |
+| API | Flask |
+| Experiment Tracking | MLflow |
+| Data Versioning | DVC |
+| Monitoring | Evidently |
+| Testing | pytest |
+| CI/CD | GitHub Actions |
+
+## Dataset
+
+**Dataset:** IBM HR Analytics Employee Attrition & Performance
+
+**Source:** [Kaggle dataset](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)
+
+- 1,470 records
+- 35 original columns
+- Target: `Attrition` (`Yes` or `No`)
+
+The training CSV is tracked using DVC metadata rather than committed directly to Git.
+
+The configured DVC remote uses local storage on the original development computer. For reproducible GitHub Actions runs, the workflow independently downloads the public Kaggle dataset and verifies its checksum before training.
+
+## Model Performance
+
+The configured Random Forest achieved the following results on a stratified 20% test split:
 
 | Metric | Score |
 |---|---:|
@@ -38,28 +64,147 @@ The configured Random Forest achieved these results on the stratified 20% test s
 | F1-score | 0.4545 |
 | ROC-AUC | 0.7705 |
 
-Precision, recall, and F1 measure performance for the positive attrition class. Recall indicates that the model identified approximately 43% of employees labeled as leaving in this test split, so accuracy alone does not fully describe its performance.
+Precision, recall, and F1 refer to the positive attrition class.
 
-The local training run completed and logged results to MLflow. All 24 automated tests also passed locally.
+The model identified approximately 43% of the employees labeled as leaving in the test split. This illustrates why accuracy alone is insufficient for evaluating imbalanced classification problems.
 
-These results come from one train/test split. Future evaluation should compare against a baseline and use cross-validation before drawing broader conclusions.
+These results are based on one train/test split. Further evaluation should include baseline comparisons and cross-validation.
 
+## Flask Prediction API
 
-## Run locally
+The project includes a Flask REST API in `src/api.py`.
 
-With Python 3.12 installed, run these commands from the project folder:
+### Health Check
+
+**Endpoint:** `GET /health`
+
+Checks whether the prediction service is running.
+
+### Generate Predictions
+
+**Endpoint:** `POST /predict`
+
+Accepts employee feature values in JSON format and returns:
+
+- Predicted attrition class
+- Prediction probabilities
+
+The API requires a trained model saved at `models/attrition_model.joblib`.
+
+The API is intended as a local demonstration, not a production employment decision system.
+
+## Run Locally
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/patrickfelder777-cpu/employee-attrition-mlops.git
+cd employee-attrition-mlops
+```
+
+### 2. Create a virtual environment
+
+Windows PowerShell:
 
 ```powershell
 py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m pytest -v
-.\.venv\Scripts\python.exe -m src.train --config configs/config.yaml
+.\.venv\Scripts\Activate.ps1
 ```
 
-The training CSV is included in the repository. Training saves the model under `models/` and metrics under `reports/`.
+### 3. Install dependencies
 
-## Future improvements
+```powershell
+python -m pip install -r requirements.txt
+```
 
-- Configure a shareable DVC remote; the current remote refers to storage on the original development computer.
-- Verify the drift-monitoring script and add monitoring checks to CI.
-- Compare model performance against a baseline and use cross-validation.
+### 4. Download the dataset
+
+```powershell
+New-Item -ItemType Directory -Force -Path data/raw
+
+curl.exe -L --fail --output employee-attrition.zip "https://www.kaggle.com/api/v1/datasets/download/pavansubhasht/ibm-hr-analytics-attrition-dataset"
+
+Expand-Archive employee-attrition.zip -DestinationPath data/raw/downloaded -Force
+
+Copy-Item data/raw/downloaded/WA_Fn-UseC_-HR-Employee-Attrition.csv data/raw/employee_attrition.csv
+```
+
+The expected MD5 checksum of `data/raw/employee_attrition.csv` is:
+
+```text
+AD8207459E5732574372CF8FF619883F
+```
+
+Verify the downloaded file:
+
+```powershell
+Get-FileHash data/raw/employee_attrition.csv -Algorithm MD5
+```
+
+### 5. Train the model
+
+```powershell
+python -m src.train --config configs/config.yaml
+```
+
+Training saves the model under `models/` and metrics under `reports/`. Experiment information is logged through MLflow.
+
+### 6. Run automated tests
+
+```powershell
+python -m pytest tests/ -v -p no:cacheprovider
+```
+
+### 7. Start the Flask API
+
+```powershell
+python -m src.api
+```
+
+The API provides `/health` and `/predict` endpoints. The prediction endpoint requires JSON containing the model's expected employee features.
+
+## Continuous Integration
+
+The GitHub Actions workflow automatically:
+
+1. Checks out the repository.
+2. Installs Python and project dependencies.
+3. Downloads the employee attrition dataset.
+4. Verifies the dataset checksum.
+5. Trains the Random Forest model.
+6. Runs automated tests.
+
+**Verified CI result:** 28 passed, 0 failed.
+
+[View GitHub Actions](https://github.com/patrickfelder777-cpu/employee-attrition-mlops/actions)
+
+## Project Structure
+
+```text
+employee-attrition-mlops/
+├── .github/workflows/ci.yml
+├── configs/
+├── data/
+│   └── raw/
+├── models/
+├── reports/
+├── src/
+│   ├── api.py
+│   ├── train.py
+│   ├── preprocessing.py
+│   └── monitor_drift.py
+├── tests/
+├── MONITORING.md
+├── requirements.txt
+└── README.md
+```
+
+## Future Improvements
+
+- Configure a shared DVC remote for easier dataset retrieval.
+- Add API request and response examples.
+- Expand model monitoring and add monitoring checks to CI.
+- Compare model performance with baseline classifiers.
+- Evaluate model stability using cross-validation.
+- Address dependency deprecation warnings.
+- Review and document the dataset's redistribution license.
